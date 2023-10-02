@@ -6,6 +6,8 @@ APP React native usar herramientas del dispositivo. Camara, Posición Geográfic
 ##### Crear proyecto RNTools
 * expo init RNTools
 
+##### Ver documento: doc/React Native - RNTools.docx
+
   ![image](https://github.com/wlopera/RNTools/assets/7141537/9d66778d-796c-4082-9f4d-caeef2bac4fc)
 
 * Agregar librería de navegación
