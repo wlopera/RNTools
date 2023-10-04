@@ -56,3 +56,50 @@ export default function App() {
 
 ![image](https://github.com/wlopera/RNTools/assets/7141537/4a379762-b144-4b4b-9dd4-1d4623effb00)
 
+### Uso de la cámara del dispositivo
+
+#### Consultar la documentación
+* https://docs.expo.dev/versions/latest/sdk/camera/
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/e0f533ea-10ee-4c9b-a887-d25065f6d9cb)
+
+* El paquete permite controlar la cámara, incluso crear nuestra propia interface
+* El Paquete ImagePicker permite abrir las fotos o iniciar la cámara
+  -- npx expo install expo-image-picker
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/551de7d6-60c8-4bd3-84d5-1a0a1dbb9328)
+
+* Configurar permisos. Por ejemplo si una App quiere usar la cámara el usuario debe dar el permiso
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/7cadff5f-d6a7-4171-91f4-3ea3a758747b)
+
+* Agregar plugin al app.json para configurar la cámara
+
+```
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La aplicación accede a tus fotos para permitirte compartirlas con tus amigos."
+        }
+      ]
+    ]
+  }
+}
+```
+* Se genera un componente que utilizara la función asíncrona (promesa):  launchCameraAsync que espera hasta que se tome la foto
+* Opciones para con figurar la cámara
+
+  ![image](https://github.com/wlopera/RNTools/assets/7141537/603ef73b-2bc2-4765-a06f-d0d13b86cf24)
+  ![image](https://github.com/wlopera/RNTools/assets/7141537/d783bc2b-bb76-4de4-a95b-ec8913b45550)
+
+#### Llamar el componente ImagePicker en PlaceForm.js y probar
+![image](https://github.com/wlopera/RNTools/assets/7141537/910726fe-280a-435f-9bb0-152c922fc96a)
+![image](https://github.com/wlopera/RNTools/assets/7141537/972f6a0b-809b-4298-b87a-2d6348b4ae11)
+![image](https://github.com/wlopera/RNTools/assets/7141537/7b5f421f-4b30-4395-80d5-6ad4b7493b03)
+![image](https://github.com/wlopera/RNTools/assets/7141537/8df68124-4580-4da7-a9d9-e302ba910ef2)
+
+
+
