@@ -101,5 +101,34 @@ export default function App() {
 ![image](https://github.com/wlopera/RNTools/assets/7141537/7b5f421f-4b30-4395-80d5-6ad4b7493b03)
 ![image](https://github.com/wlopera/RNTools/assets/7141537/8df68124-4580-4da7-a9d9-e302ba910ef2)
 
+### Presione Crop para tomar la foto
+
+```
+Imagen: [{"assetId": null, "base64": null, "duration": null, "exif": null, "height": 540, "rotation": null, "type": "image", "uri": "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252FRNTools-13541773-1f74-4886-97ac-4ab57efe2d39/ImagePicker/36d41ff9-9e9b-40f5-815c-443d073ba0e3.jpeg", "width": 960}]
+```
+
+* Si al tomar la foto da el error:
+* Key "cancelled" in the image picker result is deprecated and will be removed in SDK 48, use "canceled" instead
+* Se debe cambiar console.log(“Imagen:”, image)  console.log(“Imagen:”, image.assets)
+
+*	Para IOS se debe permitir el uso de la cámara vía programación
+
+  ![image](https://github.com/wlopera/RNTools/assets/7141537/41f3241f-ff2c-4cda-bf5a-7982f169b354)
+
+* Nota si el simulador no tiene simulador de cámara va a enviar error
+
+###### Prueba desde mi celular personal – Android
+![image](https://github.com/wlopera/RNTools/assets/7141537/e9348a0d-9339-4a3d-adf7-cdf3381448c2)
+![image](https://github.com/wlopera/RNTools/assets/7141537/7ec930ca-45c6-4db6-a549-7aa2acb18768)
+![image](https://github.com/wlopera/RNTools/assets/7141537/8c036002-7bbb-42b2-b282-f8f28a43de56)
+![image](https://github.com/wlopera/RNTools/assets/7141537/7430798a-250d-490c-bc69-162d577ea077)
+
+* Agregar un Botón personalizado. Permite agregar estilos e imagen asociadas al botón
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/8cad5931-21e5-4015-ba3c-dcd65a90aac3)
+![image](https://github.com/wlopera/RNTools/assets/7141537/88843906-1cf0-4480-a4e8-d02591ef7e17)
+
+
+
 
 
