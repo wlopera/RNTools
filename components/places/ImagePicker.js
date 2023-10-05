@@ -1,10 +1,11 @@
 import { Alert, Image, Platform, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
 import {
   PermissionStatus,
   launchCameraAsync,
   useCameraPermissions,
 } from "expo-image-picker";
-import { useState } from "react";
+
 import { Colors } from "../../constants/colors";
 import OutlinedButton from "../UI/OutlinedButton";
 
@@ -32,8 +33,7 @@ const ImagePicker = () => {
     return true;
   }
 
-  async function takeImageHandler() {
-    console.log(11111)
+  async function takeImageHandler() {    
     // Solo para IOS
     const hasPermission = await verifyPermission();
 
@@ -48,7 +48,7 @@ const ImagePicker = () => {
     }
   }
 
-  let imagePreview = <Text>No existe imagen tomada todavía</Text>;
+  let imagePreview = <Text>Actualmente no existe imagen</Text>;
 
   if (pickedImage) {
     imagePreview = <Image style={styles.image} source={{ uri: pickedImage }} />;
