@@ -6,12 +6,16 @@ import {
 } from "expo-location";
 import OutlinedButton from "../UI/OutlinedButton";
 import { Colors } from "../../constants/colors";
+import { useState } from "react";
+import { getMapPreview } from "../../util/location";
 
 const LocationPicker = () => {
+  const [pickedLocation, setPickedLocation] = useState();
+
   const [locationPermissionInformation, requestPermission] =
     useForegroundPermissions();
 
-  async function verifyPermissions(params) {
+  async function verifyPermissions() {
     if (
       locationPermissionInformation.status === PermissionStatus.UNDETERMINED
     ) {
@@ -31,27 +35,48 @@ const LocationPicker = () => {
   }
 
   async function getLocationHandler() {
+    
     const hasPermission = await verifyPermissions();
 
     if (hasPermission) {
-      const location = await getCurrentPositionAsync();
+      const location = await getCurrentPositionAsync({
+        enableHighAccurancy: true,
+      });
+      setPickedLocation({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      });
+
       console.log("Localizacion del dispositivo:", location);
     }
   }
 
-  function pickOnMapHandler() {}
+  function pickOnMapHandler() {
+    setPickedLocation(null);
+  }
+
+  let locationPreview = <Text>Actualmente no existe Localización</Text>;
+
+  if (pickedLocation) {
+    const data = {
+      title: "wlopera",
+      description: `Panamá - lat: ${pickedLocation.lat}, lng:${pickedLocation.lng}`,
+      latitude: pickedLocation.lat,
+      longitude: pickedLocation.lng,
+    };
+
+    locationPreview = getMapPreview(data);
+  }
 
   return (
     <View>
-      <View style={styles.mapPreview}>
-        <Text>Actualmente no existe Localización</Text>
-      </View>
+      <View style={styles.mapPreview}>{locationPreview}</View>
       <View style={styles.actions}>
         <OutlinedButton icon="location" onPress={getLocationHandler}>
-          Localización del Usuario
+          Localización
         </OutlinedButton>
         <OutlinedButton icon="map" onPress={pickOnMapHandler}>
-          Elegir en el Mapa
+          Mapa
         </OutlinedButton>
       </View>
     </View>
@@ -69,10 +94,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primary100,
     borderRadius: 4,
+    overflow: "hidden",
   },
   actions: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-around",   
     alignItems: "center",
-  },
+  }
 });
