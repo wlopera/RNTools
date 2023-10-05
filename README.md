@@ -129,6 +129,194 @@ Imagen: [{"assetId": null, "base64": null, "duration": null, "exif": null, "heig
 ![image](https://github.com/wlopera/RNTools/assets/7141537/88843906-1cf0-4480-a4e8-d02591ef7e17)
 
 
+#### Location Picker
+```
+Agregar componente LocationPicker.js
+
+import { StyleSheet, Text, View } from "react-native";
+import OutlinedButton from "./OutlinedButton";
+import { Colors } from "../../constants/colors";
+
+const LocationPicker = () => {
+  function getLocationHandler() {}
+  function pickOnMapHandler() {}
+
+  return (
+    <View>
+      <View style={styles.mapPreview}>
+        <Text>Actualmente no existe Localización</Text>
+      </View>
+      <View style={styles.actions}>
+        <OutlinedButton icon="location" onPress={getLocationHandler}>
+          Localización del Usuario
+        </OutlinedButton>
+        <OutlinedButton icon="map" onPress={pickOnMapHandler}>
+          Elegir en el Mapa
+        </OutlinedButton>
+      </View>
+    </View>
+  );
+};
+
+export default LocationPicker;
+
+const styles = StyleSheet.create({
+  mapPreview: {
+    width: "100%",
+    height: 200,
+    marginVertical: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.primary100,
+    borderRadius: 4,
+  },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+});
+```
+
+* Agregar al formulario PlaceForm.js el componente LocationPicker
+
+```
+...
+ <ScrollView style={styles.form}>
+      <View>
+        <Text style={styles.label}>Titulo</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={changeTitleHandler}
+          value={enteredTitle}
+        />
+      </View>
+      <ImagePicker />
+      <LocationPicker />
+    </ScrollView>
+  );
+``` 
+
+### Consultar la documentación
+https://docs.expo.dev/versions/latest/sdk/location/
+
+
+*	Esta librería permite buscar geolocalización del dispositivo
+*	Instalamos el paquete: npx expo install expo-location
+ 
+*	Definir o solicitar permisos especiales al usuario para usar geolocalización mientras el dispositivo está en segundo plano
+ 
+ 
+*	Uso de la función getCurrentPositionAsync que nos permite obtener la ubicación actual del dispositivo
+
+ 
+*	Agrego función para validar permisos o solicitarlos al usuario para la localización del dispositivo
+
+```
+ const [locationPermissionInformation, requestPermission] =
+    useForegroundPermissions();
+
+  async function verifyPermissions(params) {
+    if (
+      locationPermissionInformation.status === PermissionStatus.UNDETERMINED
+    ) {
+      const responsePermission = await requestPermission();
+
+      return responsePermission.granted; // true/false: otorga o no el permiso
+    }
+
+    if (locationPermissionInformation.status === PermissionStatus.DENIED) {
+      Alert.alert(
+        "Permisos Insuficientes",
+        "Necesitas otorgar permisos de localización para utilizar esta APP"
+      );
+      return false;
+    }
+    return true;
+  }
+
+  async function getLocationHandler() {
+    const hasPermission = await verifyPermissions();
+
+    if (hasPermission) {
+      const location = await getCurrentPositionAsync();
+      console.log("Localizacion del dispositivo:", location);
+    }
+  }
+```
+
+* 	Corre APP y presionar botón de Localización de Usuario. Aceptar y dar los permisos
+ 
+* Al aceptar los permisos me envía la localización del dispositivo
+
+```
+LOG  Localizacion del dispositivo: {"coords": {"accuracy": 600, "altitude": 0, "altitudeAccuracy": 0, "heading": 0, "latitude": 37.4220936, "longitude": -122.083922, "speed": 0}, "mocked": false, "timestamp": 1696517443968}
+```
+
+*Pero si el dispositivo (emulador) no lo permite, se debe configurar otro simulador
+
+
+### Uso de Google Map para mostrar una vista con la localización del dispositivo
+
+*	Uso de Api de Google Map
+ -- https://developers.google.com/maps/documentation/maps-static/overview?hl=es-419
+
+ 
+
+* Como no quiero invertir en Google Map voy a utilizar otra librería como ejercicio
+
+### Uso de React Native Maps
+
+* Vamos a mapear la ubicación de mi dispositivo mediante el uso de la librería RN maps
+* > npm install react-native-maps
+
+* Crear componente para manejar imágenes de localización (location.js)
+
+```
+import { StyleSheet } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+
+export const getMapPreview = ({ title, description, latitude, longitude }) => {
+  return (
+    <MapView
+      style={styles.image}
+      provider={PROVIDER_GOOGLE}
+      initialRegion={{
+        latitude: latitude, // 8.998971410573342,
+        longitude: longitude, // -79.52239288938559,
+        latitudeDelta: 0.002,
+        longitudeDelta: 0.002,
+      }}
+    >
+      <Marker
+        key={1}
+        coordinate={{
+          latitude: latitude,
+          longitude: longitude,
+        }}
+        title={title}
+        description={description}
+      />
+    </MapView>
+  );
+};
+
+const styles = StyleSheet.create({
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+});
+```
+
+* El simulador posiblemente no muestre el mapa correctamente. 
+ 
+* Probando en mi celular. Se puede ver la imagen y las coordenadas correcta
+
+``` 
+Localizacion del dispositivo: {"coords": {"accuracy": 77.31300354003906, "altitude": 29, "altitudeAccuracy": 2.3575026988983154, "heading": 0, "latitude": 8.9988368, "longitude": -79.5234054, "speed": 0}, "mocked": false, "timestamp": 1696538668122}
+```
+ 
 
 
 
