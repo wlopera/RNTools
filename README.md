@@ -130,6 +130,7 @@ Imagen: [{"assetId": null, "base64": null, "duration": null, "exif": null, "heig
 
 
 #### Location Picker
+
 ```
 Agregar componente LocationPicker.js
 
@@ -197,17 +198,25 @@ const styles = StyleSheet.create({
   );
 ``` 
 
+![image](https://github.com/wlopera/RNTools/assets/7141537/9edf11b3-c36c-414d-9a5c-98035111844e)
+
 ### Consultar la documentación
 https://docs.expo.dev/versions/latest/sdk/location/
 
+![image](https://github.com/wlopera/RNTools/assets/7141537/7a5cc5e5-45ab-4cca-a014-fcaefa77f75c)
 
 *	Esta librería permite buscar geolocalización del dispositivo
 *	Instalamos el paquete: npx expo install expo-location
- 
+
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/c3b8d07c-995a-4cc2-8143-98e67c83e8c2)
+
 *	Definir o solicitar permisos especiales al usuario para usar geolocalización mientras el dispositivo está en segundo plano
- 
- 
+
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/2fd6de05-01ea-41e0-ae70-b2fc1c980789)
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/ba67ae9e-6d32-46ce-bdcd-d6dc6ba0d599)
+
 *	Uso de la función getCurrentPositionAsync que nos permite obtener la ubicación actual del dispositivo
+![image](https://github.com/wlopera/RNTools/assets/7141537/08c28058-666f-4309-a837-ee9a41a640ff)
 
  
 *	Agrego función para validar permisos o solicitarlos al usuario para la localización del dispositivo
@@ -246,7 +255,9 @@ https://docs.expo.dev/versions/latest/sdk/location/
 ```
 
 * 	Corre APP y presionar botón de Localización de Usuario. Aceptar y dar los permisos
- 
+
+  ![image](https://github.com/wlopera/RNTools/assets/7141537/6e61ee86-748a-437d-9437-6d2a146d38a0)
+
 * Al aceptar los permisos me envía la localización del dispositivo
 
 ```
@@ -261,7 +272,7 @@ LOG  Localizacion del dispositivo: {"coords": {"accuracy": 600, "altitude": 0, "
 *	Uso de Api de Google Map
  -- https://developers.google.com/maps/documentation/maps-static/overview?hl=es-419
 
- 
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/3a89fcd3-ae51-42f3-9628-3275b40f41b8)
 
 * Como no quiero invertir en Google Map voy a utilizar otra librería como ejercicio
 
@@ -310,8 +321,12 @@ const styles = StyleSheet.create({
 ```
 
 * El simulador posiblemente no muestre el mapa correctamente. 
- 
+
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/a0762f1f-679b-4454-88a6-e88114f04e50)
+
 * Probando en mi celular. Se puede ver la imagen y las coordenadas correcta
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/697748e0-627a-4659-bb72-fa646c70a4d4)
 
 ``` 
 Localizacion del dispositivo: {"coords": {"accuracy": 77.31300354003906, "altitude": 29, "altitudeAccuracy": 2.3575026988983154, "heading": 0, "latitude": 8.9988368, "longitude": -79.5234054, "speed": 0}, "mocked": false, "timestamp": 1696538668122}
