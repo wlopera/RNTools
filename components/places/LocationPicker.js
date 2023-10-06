@@ -8,9 +8,12 @@ import OutlinedButton from "../UI/OutlinedButton";
 import { Colors } from "../../constants/colors";
 import { useState } from "react";
 import { getMapPreview } from "../../util/location";
+import { useNavigation } from "@react-navigation/native";
 
 const LocationPicker = () => {
   const [pickedLocation, setPickedLocation] = useState();
+
+  const navigation = useNavigation();
 
   const [locationPermissionInformation, requestPermission] =
     useForegroundPermissions();
@@ -35,7 +38,6 @@ const LocationPicker = () => {
   }
 
   async function getLocationHandler() {
-    
     const hasPermission = await verifyPermissions();
 
     if (hasPermission) {
@@ -52,7 +54,7 @@ const LocationPicker = () => {
   }
 
   function pickOnMapHandler() {
-    setPickedLocation(null);
+    navigation.navigate("map");
   }
 
   let locationPreview = <Text>Actualmente no existe Localización</Text>;
@@ -98,7 +100,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
-    justifyContent: "space-around",   
+    justifyContent: "space-around",
     alignItems: "center",
-  }
+  },
 });
