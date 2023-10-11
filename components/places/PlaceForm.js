@@ -1,15 +1,36 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { TextInput, ScrollView, View, Text, StyleSheet } from "react-native";
 
 import { Colors } from "../../constants/colors";
 import ImagePicker from "./ImagePicker";
 import LocationPicker from "./LocationPicker";
+import Button from "../UI/Button";
+import { Place } from "../../models/places";
 
-function PlaceForm() {
+function PlaceForm({ onCreatePlace }) {
   const [enteredTitle, setEnteredTitle] = useState("");
+  const [selectedImage, setSelectedImage] = useState();
+  const [pickedLocation, setPickedLocation] = useState();
 
   function changeTitleHandler(enteredtext) {
     setEnteredTitle(enteredtext);
+  }
+
+  function takeImageHandler(imageUri) {
+    setSelectedImage(imageUri);
+  }
+
+  // Para evitar que se caiga en ciclo infinito
+  const pickLocationHandler = useCallback((location) => {
+    setPickedLocation(location);
+  }, []);
+
+  function savePlaceHandler() {
+    // console.log("enteredTitle:", enteredTitle);
+    // console.log("selectedImage:", selectedImage);
+    // console.log("pickedLocation:", pickedLocation);
+    const placeData = new Place(enteredTitle, selectedImage, pickedLocation);
+    onCreatePlace(placeData);
   }
 
   return (
@@ -22,8 +43,9 @@ function PlaceForm() {
           value={enteredTitle}
         />
       </View>
-      <ImagePicker />
-      <LocationPicker />
+      <ImagePicker onTakeImage={takeImageHandler} />
+      <LocationPicker onPickLocation={pickLocationHandler} />
+      <Button onPress={savePlaceHandler}>Agregar Lugar</Button>
     </ScrollView>
   );
 }

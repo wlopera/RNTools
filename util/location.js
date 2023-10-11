@@ -6,11 +6,11 @@ export const getMapPreview = ({ title, description, latitude, longitude }) => {
     <MapView
       style={styles.image}
       provider={PROVIDER_GOOGLE}
-      initialRegion={{
+      region={{
         latitude: latitude, // 8.998971410573342,
         longitude: longitude, // -79.52239288938559,
-        latitudeDelta: 0.002,
-        longitudeDelta: 0.002,
+        latitudeDelta: 0.03,
+        longitudeDelta: 0.03,
       }}
     >
       <Marker
@@ -24,6 +24,10 @@ export const getMapPreview = ({ title, description, latitude, longitude }) => {
       />
     </MapView>
   );
+};
+
+export const getAddress = (latitude, longitude) => {
+  return `Dirección API - conversión: latitud: ${latitude} - longitud:${longitude}`;
 };
 
 const styles = StyleSheet.create({
