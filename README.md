@@ -450,6 +450,230 @@ const Map = ({ navigation }) => {
 
 * Al dar click sobre el mapa (nueva ubicación) y dar a botón (Guardar), debe regresar a la vista inicial y pasar los parámetros para redibujar el mapa solicitado
 
+#### Mapear la ubicación seleccionada en el área MAP
+
+* Uso de librerías de react-native para obtener los parámetros enviados por el componente Map
+
+```
+… 
+ const route = useRoute();
+
+  const [locationPermissionInformation, requestPermission] =
+    useForegroundPermissions();
+
+  const mapPikedLocation = route.params && {
+    lat: route.params.pickedLat,
+    lng: route.params.pickedLng,
+  };
+
+  useEffect(() => {
+    if (mapPikedLocation) {
+      setPickedLocation(mapPikedLocation);
+    }
+  }, [mapPikedLocation]);
+…
+```
+
+* Cuando se pasan parámetros con Stack Navigation de una pantalla a otra, la nueva pantalla pasa al principio de la pila de pantallas por lo que los parámetros son visibles, ya que se mantienen todos los valores de las pantallas anteriores. Pero cuando venimos de una pantalla a otra a través de una llamada entre pantallas el componente final no recrean los parámetros así que deben pasarse los parámetros mediante navigation
+* Se debe utilizar, useIsFocused(), useNavigation() y useRoute() para poder consultar los parámetros
+* Para Componente Map.js
+```
+…
+navigation.navigate("AppPlace", {
+      pickedLat: seletedLocation.latitud,
+      pickedLng: seletedLocation.longitude,
+    });
+…
+```
+
+* Se debe agregar un parámetro que permita obtener los parámetros cuando la vista esta activa 
+const isFocused = useIsFocused();
+
+```
+ …
+const [pickedLocation, setPickedLocation] = useState();
+
+  // Sera cierto si solo si el componente de pantalla al que pertenece este componente
+  // sea la pantalla principal, sino falso
+  const isFocused = useIsFocused();
+
+  const navigation = useNavigation();
+
+  const route = useRoute();
+  const [locationPermissionInformation, requestPermission] =
+    useForegroundPermissions();
+  useEffect(() => {
+    if (isFocused && route.params) {
+      setPickedLocation({
+        lat: route.params.pickedLat,
+        lng: route.params.pickedLng,
+      });
+    }
+  }, [route, isFocused]);
+…
+```
+
+* Probando. Primero seleccione su localización y tome una imagen. Luego en Mapa seleccione un punto y luego click en botón save se muestra esa nueva ubicación en la localización. 
+
+       
+
+
+### Botón de guardado de los datos de la pantalla
+
+* Creamos componente de botón básico
+
+```
+import { Pressable, StyleSheet, Text } from "react-native";
+import { Colors } from "../../constants/colors";
+
+export default function Button({ onPress, children }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      onPress={onPress}
+    >
+      <Text style={styles.text}>{children}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    margin: 4,
+    backgroundColor: Colors.primary800,
+    elevation: 2,
+    shadowColor: "black",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 1, height: 1 },
+    shadowRadius: 2,
+    borderRadius: 4
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  text: {
+    textAlign: "center",
+    fontSize: 16,
+    color: Colors.primary50,
+  },
+});
+```
+
+* Actualizamos el PlaceForm.js
+
+```
+…
+ function changeTitleHandler(enteredtext) {
+    setEnteredTitle(enteredtext);
+  }
+  function takeImageHandler(imageUri) {
+    setSelectedImage(imageUri);
+  }
+  // Para evitar que se caiga en ciclo infinito
+  const pickLocationHandler = useCallback((location) => {
+    setPickedLocation(location);
+  }, []);
+  function savePlaceHandler() {
+    console.log("enteredTitle:", enteredTitle);
+    console.log("selectedImage:", selectedImage);
+    console.log("pickedLocation:", pickedLocation);
+  }
+  return (
+    <ScrollView style={styles.form}>
+      <View>
+        <Text style={styles.label}>Titulo</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={changeTitleHandler}
+          value={enteredTitle}
+        />
+      </View>
+      <ImagePicker onTakeImage={takeImageHandler} />
+      <LocationPicker onPickLocation={pickLocationHandler} />
+      <Button onPress={savePlaceHandler}>Agregar Lugar</Button>
+    </ScrollView>
+  );
+…
+```
+
+### Uso de API Google Map para traducir un par de coordenadas geográficas en una dirección legible. Como no quiero cuenta de API Google Map, voy a simular una respuesta address.
+
+* Crear utilitario que debería llamar un API asíncrono de Google Map que retorna la dirección dado la latitud y longitud.
+* Modificar location.js
+
+```  
+…
+export const getAddress = (latitude, longitude) => {
+  return `Dirección API - conversión: latitud: ${latitude} - longitud:${longitude}`;
+};
+…
+```
+
+* Modificar LocationPicker.js
+
+```
+…
+  useEffect(() => {
+    if (pickedLocation) {
+      const address = getAddress(pickedLocation.lat, pickedLocation.lng);
+      onPickLocation({ ...pickedLocation, address: address });
+    }
+  }, [pickedLocation, onPickLocation]);
+…
+```
+
+* Probar
+    
+
+```
+LOG  enteredTitle: Carrasquilla - Panamá
+LOG  selectedImage: 
+file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252FRNTools-13541773-1f74-4886-97ac-4ab57efe2d39/ImagePicker/034b23e4-b2a4-4e35-abba-56eec5da58d3.jpeg
+LOG  pickedLocation: {"address": "Dirección API - conversión: latitud: 9.0009662516933 - longitud:-79.51103892177343", 
+"lat": 9.0009662516933, "lng": -79.51103892177343}
+```
+
+### Retornar los datos de la pantalla PlaceForm a la pantalla AllPlace
+
+* Modificamos el modelo o clase place.js
+
+```
+export class Place {
+  constructor(title, imageUri, location) {
+    this.id = new Date().getDate().toString() + Math.random().toString();
+    this.title = title;
+    this.imageUri = imageUri;
+    this.address = location.address;
+    this.location = { lat: location.lat, lng: latitud.lng }; //{lat:0.12345, lng: 127.455}
+  }
+}
+```
+
+* El Botón Agregar Lugar de PlaceForm.js debe retornar los datos en una función que se pasa en los props
+
+```
+…
+  function savePlaceHandler() {
+    const placeData = new Place(enteredTitle, selectedImage, pickedLocation);
+    onCreatePlace(placeData);
+  }
+…
+```
+
+* La pantalla AddPlace.js debe recibir y redireccionar los resultados a la Pantalla AllPlace.js
+
+```
+import PlaceForm from "../components/Places/PlaceForm";
+function AddPlace({ navigation }) {
+  function createPlaceHandler(place) {
+    navigation.navigate("AllPlace", { place: place });
+  }
+  return <PlaceForm onCeatePlace={createPlaceHandler} />;
+}
+export default AddPlace;
+```
 
 
 
