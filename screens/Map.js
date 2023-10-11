@@ -7,8 +7,8 @@ import IconButton from "../components/UI/IconButton";
 const Map = ({ navigation }) => {
   const [seletedLocation, setSeletedLocation] = useState();
   const region = {
-    latitude: 37.78, // Eje Norte-Sur -> centro
-    longitude: -122.43, // Eje Este-Oeste -> centro
+    latitude: 8.998971410573342, // Eje Norte-Sur -> centro
+    longitude: -79.52239288938559, // Eje Este-Oeste -> centro
     latitudeDelta: 0.0922, // Area Norte-Sur a ver - acercamiento - nivel de zoom
     longitudeDelta: 0.0421, // Area Este-Oeste a ver - acercamiento - nivel de zoom
   };
@@ -31,8 +31,8 @@ const Map = ({ navigation }) => {
       return;
     }
     navigation.navigate("AppPlace", {
-      pickedLat: seletedLocation.lat,
-      pickedLng: seletedLocation.lng,
+      pickedLat: seletedLocation.latitud,
+      pickedLng: seletedLocation.longitude,
     });
   }, [navigation, seletedLocation]);
 

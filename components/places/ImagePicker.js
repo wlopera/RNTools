@@ -9,7 +9,7 @@ import {
 import { Colors } from "../../constants/colors";
 import OutlinedButton from "../UI/OutlinedButton";
 
-const ImagePicker = () => {
+const ImagePicker = ({onTakeImage}) => {
   const [pickedImage, setPickedImage] = useState();
 
   // Permisos para IOS
@@ -44,7 +44,8 @@ const ImagePicker = () => {
         quality: 0.5,
       });
       setPickedImage(image.assets[0].uri);
-      console.log("Imagen:", image.assets[0]);
+      onTakeImage(image.assets[0].uri);
+      console.log("Imagen:", image.assets[0].uri);
     }
   }
 

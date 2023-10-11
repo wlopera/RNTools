@@ -6,17 +6,43 @@ import {
 } from "expo-location";
 import OutlinedButton from "../UI/OutlinedButton";
 import { Colors } from "../../constants/colors";
-import { useState } from "react";
-import { getMapPreview } from "../../util/location";
-import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import { getAddress, getMapPreview } from "../../util/location";
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 
-const LocationPicker = () => {
+const LocationPicker = ({ onPickLocation }) => {
   const [pickedLocation, setPickedLocation] = useState();
+
+  // Sera cierto si solo si el componente de pantalla al que pertenece este componente
+  // sea la pantalla principal, sino falso
+  const isFocused = useIsFocused();
 
   const navigation = useNavigation();
 
+  const route = useRoute();
+
   const [locationPermissionInformation, requestPermission] =
     useForegroundPermissions();
+
+  useEffect(() => {
+    if (isFocused && route.params) {
+      setPickedLocation({
+        lat: route.params.pickedLat,
+        lng: route.params.pickedLng,
+      });
+    }
+  }, [route, isFocused]);
+
+  useEffect(() => {
+    if (pickedLocation) {
+      const address = getAddress(pickedLocation.lat, pickedLocation.lng);
+      onPickLocation({ ...pickedLocation, address: address });
+    }
+  }, [pickedLocation, onPickLocation]);
 
   async function verifyPermissions() {
     if (
@@ -48,7 +74,6 @@ const LocationPicker = () => {
         lat: location.coords.latitude,
         lng: location.coords.longitude,
       });
-
       console.log("Localizacion del dispositivo:", location);
     }
   }
