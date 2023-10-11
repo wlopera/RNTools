@@ -515,8 +515,9 @@ const [pickedLocation, setPickedLocation] = useState();
 
 * Probando. Primero seleccione su localización y tome una imagen. Luego en Mapa seleccione un punto y luego click en botón save se muestra esa nueva ubicación en la localización. 
 
-       
-
+![image](https://github.com/wlopera/RNTools/assets/7141537/7c51dc71-2085-4a2a-b8ad-b09c7f9fe210)
+![image](https://github.com/wlopera/RNTools/assets/7141537/e5bf279d-871e-444c-ac03-1461ceeb6019)
+![image](https://github.com/wlopera/RNTools/assets/7141537/98604c69-1fa7-413f-a8d2-6ce3564642b5)
 
 ### Botón de guardado de los datos de la pantalla
 
@@ -625,8 +626,9 @@ export const getAddress = (latitude, longitude) => {
 ```
 
 * Probar
-    
 
+![image](https://github.com/wlopera/RNTools/assets/7141537/d8fc5a42-5553-4a97-a188-5a18c83f9074)
+   
 ```
 LOG  enteredTitle: Carrasquilla - Panamá
 LOG  selectedImage: 
