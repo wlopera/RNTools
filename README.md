@@ -331,7 +331,125 @@ const styles = StyleSheet.create({
 ``` 
 Localizacion del dispositivo: {"coords": {"accuracy": 77.31300354003906, "altitude": 29, "altitudeAccuracy": 2.3575026988983154, "heading": 0, "latitude": 8.9988368, "longitude": -79.5234054, "speed": 0}, "mocked": false, "timestamp": 1696538668122}
 ```
- 
+
+### Crear un Mapa de la localización consultada
+
+* Uso de MapView
+* Genero el componente Map.js
+
+```
+import { useCallback, useLayoutEffect, useState } from "react";
+import { Alert, StyleSheet } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+
+import IconButton from "../components/UI/IconButton";
+
+const Map = ({ navigation }) => {
+  const [seletedLocation, setSeletedLocation] = useState();
+  const region = {
+    latitude: 37.78, // Eje Norte-Sur -> centro
+    longitude: -122.43, // Eje Este-Oeste -> centro
+    latitudeDelta: 0.0922, // Area Norte-Sur a ver - acercamiento - nivel de zoom
+    longitudeDelta: 0.0421, // Area Este-Oeste a ver - acercamiento - nivel de zoom
+  };
+
+  function selectLocationHandler(event) {
+    const lat = event.nativeEvent.coordinate.latitude;
+    const lng = event.nativeEvent.coordinate.longitude;
+    setSeletedLocation({ latitud: lat, longitude: lng });
+  }
+
+  // Evitar ciclos de renderizados innecesarios incluso evitar bucles infinitos
+  // Funcion flecha envuelta en un callback, devolucion de llamada, que nos permite garantizar
+  // que una funcion definida dentro de un componente no se cree innecesarimanete multiple veces
+  const savePickedLocationhandler = useCallback(() => {
+    if (!seletedLocation) {
+      Alert.alert(
+        "No existe localización seleccionada",
+        "Debe seleccionar una localización, sobre el mapa, primero"
+      );
+      return;
+    }
+    navigation.navigate("AppPlace", {
+      pickedLat: seletedLocation.lat,
+      pickedLng: seletedLocation.lng,
+    });
+  }, [navigation, seletedLocation]);
+
+  // Funcion efecto para evitar llamas innes}cesarias o bucles infinitos, utilizar useCallbak
+  // en la funcion que se llama en el useLayoutEffect
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: ({ tintColor }) => (
+        <IconButton
+          icon="save"
+          size={24}
+          color={tintColor}
+          onPress={savePickedLocationhandler}
+        />
+      ),
+    });
+  }, [navigation, savePickedLocationhandler]);
+
+  return (
+    <MapView
+      style={styles.map}
+      initialRegion={region}
+      onPress={selectLocationHandler}
+    >
+      {seletedLocation && (
+        <Marker
+          title="Ubicación seleccionada"
+          coordinate={{
+            latitude: seletedLocation.latitud,
+            longitude: seletedLocation.longitude,
+          }}
+        />
+      )}
+    </MapView>
+  );
+};
+
+export default Map;
+
+const styles = StyleSheet.create({
+  map: { flex: 1 },
+});
+```
+
+#### Notas: 
+1.	Evitar ciclos de renderizados innecesarios incluso evitar bucles infinitos para ello se crea una función flecha envuelta en un Callback, devolución de llamada, que nos permite garantizar que una función definida dentro de un componente no cree llamadas innecesariamente o llamadas múltiples de la función 
+2.	El componente Map.js como viene de una llamada de navegación, recibe el objeto navigation que permite el control de la navegación sobre el componente 
+const Map = ({ navigation }) => {
+
+3.	Para que el componente Map.js realice un back al componente que lo llamo y se dese pasar parámetros es mejor utilizar el objeto navigation y agregar los parámetros que quiero regresar a la pantalla que lo llamo previamente
+ navigation.navigate("AppPlace", {
+      pickedLat: seletedLocation.lat,
+      pickedLng: seletedLocation.lng,
+    });
+
+* Agregar la opción de navegación “Map” al App.js
+
+```
+…
+ <Stack.Screen
+            name="map"
+            component={Map}
+            options={{
+              title: "Mapa",
+            }}
+          />
+…
+```
+
+* Salidas para probar Componente Map.js, Ubicación de información sobre el mapa y control de botón si se realizó una nueva ubicación sobre el map (click)
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/7b883d54-2a4a-4183-b4cf-6f93c0cd21be)
+![image](https://github.com/wlopera/RNTools/assets/7141537/3062a627-f2e0-41cd-9475-c410b7e100b8)
+![image](https://github.com/wlopera/RNTools/assets/7141537/b82a40f4-7e64-48ab-80b6-1f9f6d630acf)
+
+* Al dar click sobre el mapa (nueva ubicación) y dar a botón (Guardar), debe regresar a la vista inicial y pasar los parámetros para redibujar el mapa solicitado
+
 
 
 
