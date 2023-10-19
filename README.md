@@ -677,5 +677,565 @@ function AddPlace({ navigation }) {
 export default AddPlace;
 ```
 
+#### Mostrar lista de Lugares y enviarla a DB
+
+* Debemos asegurarnos que la pantalla ALLPlace reciba el foco y la data (uso de useIsFocused)
+
+* Primero ajustar estilo de PlaceItem.js
+
+```
+import { Pressable, Image, View, Text, StyleSheet } from "react-native";
+
+import { Colors } from "../../constants/colors";
+
+function PlaceItem({ place, onSelect }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+      onPress={onSelect}
+    >
+      <Image style={styles.image} source={{ uri: place.imageUri }} />
+      <View style={styles.info}>
+        <Text style={styles.title}>{place.title}</Text>
+        <Text style={styles.address}>{place.address}</Text>
+      </View>
+    </Pressable>
+  );
+}
+export default PlaceItem;
+
+const styles = StyleSheet.create({
+  item: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderRadius: 6,
+    marginVertical: 12,
+    backgroundColor: Colors.primary500,
+    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 1, height: 1 },
+    shadowRadius: 2,
+  },
+  pressed: {
+    opacity: 0.9,
+  },
+  image: {
+    flex: 1,
+    borderBottomLeftRadius: 6,
+    borderTopLeftRadius: 6, 
+    height: 100,
+  },
+  info: {
+    flex: 2,
+    padding: 12,
+  },
+  title: {
+    fontWeight: "bold",
+    fontSize: 18,
+    color: Colors.gray700,
+  },
+  address: {
+    fontSize: 12,
+    color: Colors.gray700,
+  },
+});
+```
+
+###	Salida
+ 
+![image](https://github.com/wlopera/RNTools/assets/7141537/ba69aed8-83ab-4a3a-bf91-da6addea6111)
+
+#### Almacenar la información en una base de datos local del dispositivo
+
+*	Vamos a utilizar expo-sqlite
+	
+ ![image](https://github.com/wlopera/RNTools/assets/7141537/6285e75b-a05a-4f8c-9508-120c1aa6e4f7)
+
+*	Instamos el paquete SQLite: npx expo install expo-sqlite
+ 
+*	Crear utilitario database.js para DB. Crear o inicializar la base de datos
+
+```
+import * as SQLite from "expo-sqlite";
+
+// Si no existe se creara automaticamente
+const database = SQLite.openDatabase("place.db");
+
+// Debe correr aunque sea una vez para asegurar la configuracin correcta de nuestra DB
+export function init() {
+  // Utilizar on}bjeto transaccional para realizar consultas controladas
+  const promise = new Promise((resolver, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS places(
+            id INTEGER PRIMARY KEY NOT NULL,
+            title TEXT NOT NULL,
+            imageUri TEXT NOT NULL,
+            address TEXT NOT NULL,
+            lat REAL NOT NULL,
+            lng REAL NOT NULL
+        )`,
+        [],
+        () => {
+          resolver();
+        },
+        (_, error) => {
+          reject(error);
+        }
+      );
+    });
+  });
+  return promise;
+}
+```
+
+* Actualizar App.js. uso de 'expo-splash-screen' porque ‘expo-loading’ esta deprecado
+
+```
+…
+import { useCallback, useEffect, useState } from "react";
+import * as SplashScreen from 'expo-splash-screen';
+
+import { init } from "./util/database";
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+  const [dbInitialized, setDbInitialized] = useState(false);
+
+  // code from Expo using SplashScreen:
+  useEffect(() => {
+    const prepare = async () => {
+      try {
+        await SplashScreen.preventAutoHideAsync();
+        init();
+      } catch (e) {
+        console.log("Error inicializando DB:", e)
+      } finally {
+        setDbInitialized(true);
+      }
+    };
+    prepare();
+  }, []);
+ 
+  const onLayoutRootView = useCallback(
+    async () => {
+      if (dbInitialized) {
+        await SplashScreen.hideAsync();
+      }
+    },
+    [dbInitialized]
+  );
+ 
+  if (!dbInitialized) return null;
+
+  // if (!dbInitialized) {
+  //   return;
+  //   <View
+  //     style={{
+  //       flex: 1,
+  //       justifyContent: "center",
+  //       alignItems: "center",
+  //       backgroundColor: "pink",
+  //     }}
+  //   >
+  //     <Text
+  //       style={{
+  //         fontSize: 30,
+  //       }}
+  //     >
+  //       Cargando...
+  //     </Text>
+  //     <Image source={require("./assets/favicon.png")} />
+  //   </View>;
+  // }
+
+  
+
+  return (
+    <>
+      <StatusBar style="dark" />
+      <NavigationContainer onReady={onLayoutRootView}>
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: { backgroundColor: Colors.primary500 },
+            headerTintColor: Colors.gray700,
+            contentStyle: { backgroundColor: Colors.gray700 },
+          }}
+        >
+…
+```
+
+*	Insertando registro en la DB
+
+```
+export function insertPlace(place) {
+  const promise = new Promise((resolver, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        `INSERT INTO place (title, imageUri, address, lat, lng) VALUES (?, ?, ?, ?, ?)`,
+        [
+          place.title,
+          place.imageUri,
+          place.address,
+          place.location.lat,
+          place.location.lng,
+        ],
+        (_, result) => {
+          console.log("Resultado de la inserción de lugar:", result);
+          resolver(result);
+        },
+        (_, error) => {
+          console.log("Errorn en la inserción de lugar:", error);
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+```
+ 
+*	Agregar llamada al método de insertar data. AddPlace.js
+
+```
+import PlaceForm from "../components/Places/PlaceForm";
+import { insertPlace } from "../util/database";
+
+function AddPlace({ navigation }) {
+  async function createPlaceHandler(place) {
+    await insertPlace(place);
+    navigation.navigate("AllPlaces", { place: place });
+  }
+  return <PlaceForm onCreatePlace={createPlaceHandler} />;
+}
+export default AddPlace;
+```
+
+* Probar llamada
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/f861f6ac-9252-454c-af24-c192645f18c2)
+![image](https://github.com/wlopera/RNTools/assets/7141537/1755665a-795a-45a2-a65c-8d3e44d1d064)
+
+  
+```
+LOG  Resultado de la inserción de lugar: {"insertId": 1, "rows": {"_array": [], "length": 0}, "rowsAffected": 1}      
+insertId": 1 => Id en la DB
+```
+
+ 
+*	Consultar datos de la DB SQLite
+*	Función de inserción en database.js
+
+```
+…
+export function fetchPlaces() {
+  const promise = new Promise((resolver, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql("SELECT * FROMS places"),
+        [],
+        (_, result) => {
+          console.log("Consulta de Lugares:", result);
+          resolver(result);
+        },
+        (_, error) => {
+          console.log("Error en consulta de lugares:", error);
+          reject(error);
+        }
+    });
+  });
+  return promise;
+}
+…
+```
+
+*	Ajuste en AddPlaces.js
+
+```
+import PlaceForm from "../components/Places/PlaceForm";
+import { insertPlace } from "../util/database";
+
+function AddPlace({ navigation }) {
+  async function createPlaceHandler(place) {
+    // Refactor del codigo
+    // navigation.navigate("AllPlaces", { place: place });
+
+    await insertPlace(place);
+    navigation.navigate("AllPlaces");
+  }
+  return <PlaceForm onCreatePlace={createPlaceHandler} />;
+}
+export default AddPlace;
+```
+ 
+* Ajuste en AddPlaces
+```
+import { useIsFocused } from "@react-navigation/native";
+import PlaceList from "../components/Places/PlaceList";
+import { useEffect, useState } from "react";
+import { fetchPlaces } from "../util/database";
+
+const AllPlaces = ({ route }) => {
+  const [loadedPlaces, setLoadedPlaces] = useState([]);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    // Refactor del codigo
+    // if (isFocused && route.params) {
+    //   setLoadedPlaces((curPlaces) => [...curPlaces, route.params.place]);
+    // }
+    async function loadPlaces() {
+      await fetchPlaces();
+    }
+    if (isFocused) {
+      loadPlaces();
+    }
+  }, [isFocused]);
+  return <PlaceList places={loadedPlaces} />;
+};
+export default AllPlaces;
+```
+
+###	Agrego un nuevo Lugar. Probar y debe imprimirse el resultado de la consulta
+```
+{
+	"rowsAffected": 0,
+	"rows": {
+		"_array": [
+			{
+				"id": 1,
+				"title": "",
+				"imageUri": "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252FRNTools-13541773-1f74-4886-97ac-4ab57efe2d39/ImagePicker/a033f346-13fe-46f6-910a-f053eec83cf1.jpeg",
+				"address": "Dirección API - conversión: latitud: 9.010953520454965 - longitud:-79.54058412462473",
+				"lat": 9.010953520454966,
+				"lng": -79.54058412462473
+			},
+			{
+				"id": 2,
+				"title": "Test",
+				"imageUri": "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540anonymous%252FRNTools-13541773-1f74-4886-97ac-4ab57efe2d39/ImagePicker/2de66c28-d647-4d05-a17d-b7096cc7066c.jpeg",
+				"address": "Dirección API - conversión: latitud: 8.9835984765397 - longitud:-79.51941814273596",
+				"lat": 8.9835984765397,
+				"lng": -79.51941814273596
+			}
+		],
+		"length": 2
+	}
+}
+```
+ 
+* Utilitario database.js
+```
+import * as SQLite from "expo-sqlite";
+
+import { Place } from "../models/places";
+
+const database = SQLite.openDatabase("places.db");
+
+export function init() {
+  const promise = new Promise((resolve, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS places (
+          id INTEGER PRIMARY KEY NOT NULL,
+          title TEXT NOT NULL,
+          imageUri TEXT NOT NULL,
+          address TEXT NOT NULL,
+          lat REAL NOT NULL,
+          lng REAL NOT NULL
+        )`,
+        [],
+        () => {
+          console.log("DB y Tabla activas")
+          resolve();
+        },
+        (_, error) => {
+          console.log("Error DB o Tabla:", error)
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+
+export function insertPlace(place) {
+  const promise = new Promise((resolve, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        `INSERT INTO places (title, imageUri, address, lat, lng) VALUES (?, ?, ?, ?, ?)`,
+        [
+          place.title,
+          place.imageUri,
+          place.address,
+          place.location.lat,
+          place.location.lng,
+        ],
+        (_, result) => {
+          console.log("Insertando lugar:", result)
+          resolve(result);
+        },
+        (_, error) => {
+          console.log("Error Insertando lugar: ", error)
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+
+export function fetchPlaces() {
+  const promise = new Promise((resolve, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM places",
+        [],
+        (_, result) => {
+          const places = [];
+
+          for (const dp of result.rows._array) {
+            places.push(
+              new Place(
+                dp.title,
+                dp.imageUri,
+                {
+                  address: dp.address,
+                  lat: dp.lat,
+                  lng: dp.lng,
+                },
+                dp.id
+              )
+            );
+          }
+          console.log("Consultar lugares:", places)
+          resolve(places);
+        },
+        (_, error) => {
+          console.log("Error consultando lugares:", error)
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+```
+
+*	App.js
+
+```
+import { StatusBar } from "expo-status-bar";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import AllPlace from "./screens/AllPlaces";
+import AddPlace from "./screens/AddPlace";
+import IconButton from "./components/UI/IconButton";
+import { Colors } from "./constants/colors";
+import Map from "./screens/Map";
+import { useEffect, useState } from "react";
+
+import { init } from "./util/database";
+import { Text, View } from "react-native";
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+  const [dbInitialized, setDbInitialized] = useState(false);
+
+  useEffect(() => {
+    init()
+      .then(() => {
+        setDbInitialized(true);
+      })
+      .catch((err) => {
+        console.log("Error inicializando DB:", err);
+      });
+  }, []);
+
+  if (!dbInitialized) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "pink",
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 30,
+          }}
+        >
+          Cargando...
+        </Text>
+      </View>
+    );
+  }
+
+  if (dbInitialized) {
+    return (
+      <>
+        <StatusBar style="dark" />
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: { backgroundColor: Colors.primary500 },
+              headerTintColor: Colors.gray700,
+              contentStyle: { backgroundColor: Colors.gray700 },
+            }}
+          >
+            <Stack.Screen
+              name="AllPlaces"
+              component={AllPlace}
+              options={({ navigation }) => ({
+                title: "Lugares Favoritos",
+                headerRight: ({ tintColor }) => (
+                  <IconButton
+                    icon="add"
+                    size={24}
+                    color={tintColor}
+                    onPress={() => {
+                      navigation.navigate("AppPlace");
+                    }}
+                  />
+                ),
+              })}
+            />
+            <Stack.Screen
+              name="AppPlace"
+              component={AddPlace}
+              options={{
+                title: "Agregar un Lugar",
+              }}
+            />
+            <Stack.Screen
+              name="map"
+              component={Map}
+              options={{
+                title: "Mapa",
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </>
+    );
+  }
+}
+```
+
+* Consulta y en DB existen dos registros
+  
+![image](https://github.com/wlopera/RNTools/assets/7141537/7f8562da-825e-49c5-982a-c0a9fcad5bba)
+
+
+ 
+
 
 
