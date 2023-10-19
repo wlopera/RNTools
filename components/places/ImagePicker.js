@@ -45,7 +45,7 @@ const ImagePicker = ({onTakeImage}) => {
       });
       setPickedImage(image.assets[0].uri);
       onTakeImage(image.assets[0].uri);
-      console.log("Imagen:", image.assets[0].uri);
+      //console.log("Imagen:", image.assets[0].uri);
     }
   }
 

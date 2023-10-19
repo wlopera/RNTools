@@ -39,7 +39,7 @@ const LocationPicker = ({ onPickLocation }) => {
 
   useEffect(() => {
     if (pickedLocation) {
-      const address = getAddress(pickedLocation.lat, pickedLocation.lng);
+      const address = getAddress(pickedLocation.lat, pickedLocation.lng);      
       onPickLocation({ ...pickedLocation, address: address });
     }
   }, [pickedLocation, onPickLocation]);
@@ -74,7 +74,7 @@ const LocationPicker = ({ onPickLocation }) => {
         lat: location.coords.latitude,
         lng: location.coords.longitude,
       });
-      console.log("Localizacion del dispositivo:", location);
+      //console.log("Localizacion del dispositivo:", location);
     }
   }
 
