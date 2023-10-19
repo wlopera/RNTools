@@ -1234,6 +1234,197 @@ export default function App() {
   
 ![image](https://github.com/wlopera/RNTools/assets/7141537/7f8562da-825e-49c5-982a-c0a9fcad5bba)
 
+#### Ver detalles de un Lugar
+
+* Ajuste para ver los detalles de un Lugar PlaceDetails.js
+
+```
+import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
+import OutlinedButton from "../components/UI/OutlinedButton";
+import { Colors } from "../constants/colors";
+import { useEffect, useState } from "react";
+import { fetchPlaceDetails } from "../util/database";
+
+const PlaceDetails = ({ route, navigation }) => {
+  const [fetchedPlace, setfetchedPlace] = useState();
+
+  function showOnMapHandler() {
+    console.log(123, fetchedPlace)
+    navigation.navigate("Map", {
+      initialLat: fetchedPlace.location.lat,
+      initialLng: fetchedPlace.location.lng,
+    });
+  }
+
+  const selectedPlaceId = route.params.placeId;
+
+  useEffect(() => {
+    // Simular retrazo de 3 seg
+    setTimeout(function () {
+      async function loadPlaceData() {
+        const place = await fetchPlaceDetails(selectedPlaceId);
+        setfetchedPlace(place);
+        navigation.setOptions({
+          title: place.title,
+        });
+      }
+      loadPlaceData();
+    }, 3000);
+  }, [selectedPlaceId]);
+
+  console.log("Place Details:", fetchedPlace);
+
+  if (!fetchedPlace) {
+    return (
+      <View style={styles.fallback}>
+        <Text>Cargando datos del lugar</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView>
+      <Image style={styles.image} source={{ uri: fetchedPlace.imageUri }} />
+      <View style={styles.locationContainer}>
+        <View style={styles.addressContainer}>
+          <Text style={styles.address}>{fetchedPlace.address}</Text>
+        </View>
+        <OutlinedButton icon="map" onPress={showOnMapHandler}>
+          Ver el Mapa
+        </OutlinedButton>
+      </View>
+    </ScrollView>
+  );
+};
+
+export default PlaceDetails;
+
+const styles = StyleSheet.create({
+  fallback: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.primary50,
+  },
+  image: {
+    height: "35%",
+    minHeight: 300,
+    width: "100%",
+  },
+  locationContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addressContainer: {
+    padding: 20,
+  },
+  address: {
+    color: Colors.primary500,
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});
+```
+
+* Agregar consulta a la DB en database.js
+```
+export function fetchPlaceDetails(id) {
+  const promise = new Promise((resolve, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM places WHERE id = ?",
+        [id],
+        (_, result) => {
+          console.log("DETALLES:", JSON.stringify(result, null, 2));
+          const dbPlace = result.rows._array[0];
+          const place = new Place(
+            dbPlace.title,
+            dbPlace.imageUri,
+            {
+              address: dbPlace.address,
+              lat: dbPlace.lat,
+              lng: dbPlace.lng,
+            },
+            dbPlace.id
+          );
+          resolve(place);
+        },
+        (_, error) => {
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+```
+* Ajustar componente Map.js para que pueda agregar o  mostrar un Mapa
+```
+…
+const initialLocation = route.params && {
+    lat: route.params.initialLat,
+    lng: route.params.initialLng,
+  };
+
+  const [seletedLocation, setSeletedLocation] = useState(initialLocation);
+
+  const region = {
+    latitude: initialLocation ? initialLocation.lat : 8.998971410573342, // Eje Norte-Sur -> centro
+    longitude: initialLocation ? initialLocation.lng : -79.52239288938559, // Eje Este-Oeste -> centro
+    latitudeDelta: 0.0922, // Area Norte-Sur a ver - acercamiento - nivel de zoom
+    longitudeDelta: 0.0421, // Area Este-Oeste a ver - acercamiento - nivel de zoom
+  };
+
+  function selectLocationHandler(event) {
+    if (initialLocation) {
+      return;
+    }
+    const lat = event.nativeEvent.coordinate.latitude;
+    const lng = event.nativeEvent.coordinate.longitude;
+    setSeletedLocation({ lat: lat, lng: lng });
+  }
+
+  // Evitar ciclos de renderizados innecesarios incluso evitar bucles infinitos
+  // Funcion flecha envuelta en un callback, devolucion de llamada, que nos permite garantizar
+  // que una funcion definida dentro de un componente no se cree innecesarimanete multiple veces
+  const savePickedLocationhandler = useCallback(() => {
+    if (!seletedLocation) {
+      Alert.alert(
+        "No existe localización seleccionada",
+        "Debe seleccionar una localización, sobre el mapa, primero"
+      );
+      return;
+    }
+    navigation.navigate("AppPlace", {
+      pickedLat: seletedLocation.lat,
+      pickedLng: seletedLocation.lng,
+    });
+  }, [navigation, seletedLocation]);
+
+  // Funcion efecto para evitar llamas innecesarias o bucles infinitos, utilizar useCallbak
+  // en la funcion que se llama en el useLayoutEffect
+  useLayoutEffect(() => {
+    if (initialLocation) {
+      return;
+    }
+…
+```
+
+##### Salida
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/f2613b3e-363e-45f7-8b33-bf20e5abf8e1)
+![image](https://github.com/wlopera/RNTools/assets/7141537/2c5aec69-5e70-4c12-b3e0-eb8e5f974060)
+![image](https://github.com/wlopera/RNTools/assets/7141537/b25e87ca-e820-4995-8efe-a1bebecf3ab5)
+
+#### Buscar documentación de Expo
+  https://docs.expo.dev/versions/latest/
+
+![image](https://github.com/wlopera/RNTools/assets/7141537/63c3cbc1-2a0c-4c46-b7ca-dcf466cc4259)
+	
+
+
 
  
 
