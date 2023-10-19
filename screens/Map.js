@@ -1,22 +1,31 @@
 import { useCallback, useLayoutEffect, useState } from "react";
-import { Alert, StyleSheet } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
 import IconButton from "../components/UI/IconButton";
 
-const Map = ({ navigation }) => {
-  const [seletedLocation, setSeletedLocation] = useState();
+const Map = ({ navigation, route }) => {
+  const initialLocation = route.params && {
+    lat: route.params.initialLat,
+    lng: route.params.initialLng,
+  };
+
+  const [seletedLocation, setSeletedLocation] = useState(initialLocation);
+
   const region = {
-    latitude: 8.998971410573342, // Eje Norte-Sur -> centro
-    longitude: -79.52239288938559, // Eje Este-Oeste -> centro
+    latitude: initialLocation ? initialLocation.lat : 8.998971410573342, // Eje Norte-Sur -> centro
+    longitude: initialLocation ? initialLocation.lng : -79.52239288938559, // Eje Este-Oeste -> centro
     latitudeDelta: 0.0922, // Area Norte-Sur a ver - acercamiento - nivel de zoom
     longitudeDelta: 0.0421, // Area Este-Oeste a ver - acercamiento - nivel de zoom
   };
 
   function selectLocationHandler(event) {
+    if (initialLocation) {
+      return;
+    }
     const lat = event.nativeEvent.coordinate.latitude;
     const lng = event.nativeEvent.coordinate.longitude;
-    setSeletedLocation({ latitud: lat, longitude: lng });
+    setSeletedLocation({ lat: lat, lng: lng });
   }
 
   // Evitar ciclos de renderizados innecesarios incluso evitar bucles infinitos
@@ -31,14 +40,18 @@ const Map = ({ navigation }) => {
       return;
     }
     navigation.navigate("AppPlace", {
-      pickedLat: seletedLocation.latitud,
-      pickedLng: seletedLocation.longitude,
+      pickedLat: seletedLocation.lat,
+      pickedLng: seletedLocation.lng,
     });
   }, [navigation, seletedLocation]);
 
-  // Funcion efecto para evitar llamas innes}cesarias o bucles infinitos, utilizar useCallbak
+  // Funcion efecto para evitar llamas innecesarias o bucles infinitos, utilizar useCallbak
   // en la funcion que se llama en el useLayoutEffect
   useLayoutEffect(() => {
+    if (initialLocation) {
+      return;
+    }
+
     navigation.setOptions({
       headerRight: ({ tintColor }) => (
         <IconButton
@@ -49,7 +62,7 @@ const Map = ({ navigation }) => {
         />
       ),
     });
-  }, [navigation, savePickedLocationhandler]);
+  }, [navigation, savePickedLocationhandler, initialLocation]);
 
   return (
     <MapView
@@ -61,8 +74,8 @@ const Map = ({ navigation }) => {
         <Marker
           title="Ubicación seleccionada"
           coordinate={{
-            latitude: seletedLocation.latitud,
-            longitude: seletedLocation.longitude,
+            latitude: seletedLocation.lat,
+            longitude: seletedLocation.lng,
           }}
         />
       )}

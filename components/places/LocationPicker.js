@@ -79,7 +79,7 @@ const LocationPicker = ({ onPickLocation }) => {
   }
 
   function pickOnMapHandler() {
-    navigation.navigate("map");
+    navigation.navigate("Map");
   }
 
   let locationPreview = <Text>Actualmente no existe Localización</Text>;
