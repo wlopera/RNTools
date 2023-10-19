@@ -18,11 +18,11 @@ export function init() {
         )`,
         [],
         () => {
-          console.log("DB y Tabla activas")
+          console.log("DB y Tabla activas");
           resolve();
         },
         (_, error) => {
-          console.log("Error DB o Tabla:", error)
+          console.log("Error DB o Tabla:", error);
           reject(error);
         }
       );
@@ -45,11 +45,11 @@ export function insertPlace(place) {
           place.location.lng,
         ],
         (_, result) => {
-          console.log("Insertando lugar:", result)
+          console.log("Insertando lugar:", result);
           resolve(result);
         },
         (_, error) => {
-          console.log("Error Insertando lugar: ", error)
+          console.log("Error Insertando lugar: ", error);
           reject(error);
         }
       );
@@ -82,11 +82,42 @@ export function fetchPlaces() {
               )
             );
           }
-          console.log("Consultar lugares:", places)
+          console.log("Consultar lugares:", places);
           resolve(places);
         },
         (_, error) => {
-          console.log("Error consultando lugares:", error)
+          console.log("Error consultando lugares:", error);
+          reject(error);
+        }
+      );
+    });
+  });
+
+  return promise;
+}
+
+export function fetchPlaceDetails(id) {
+  const promise = new Promise((resolve, reject) => {
+    database.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM places WHERE id = ?",
+        [id],
+        (_, result) => {
+          console.log("DETALLES:", JSON.stringify(result, null, 2));
+          const dbPlace = result.rows._array[0];
+          const place = new Place(
+            dbPlace.title,
+            dbPlace.imageUri,
+            {
+              address: dbPlace.address,
+              lat: dbPlace.lat,
+              lng: dbPlace.lng,
+            },
+            dbPlace.id
+          );
+          resolve(place);
+        },
+        (_, error) => {
           reject(error);
         }
       );
